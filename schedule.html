@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Study Buds - Weekly Timetable</title>
+  <link rel="stylesheet" href="styles/schedule.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="app">
+    <header>
+      <h1>📚 Study Buds <span class="highlight">Weekly Timetable</span></h1>
+      <p class="subtitle">Plan your week like a pro 🧠💫</p>
+    </header>
+
+    <form id="addForm">
+      <input type="time" id="time" required />
+      <select id="day" required>
+        <option value="">Choose day</option>
+        <option value="Mon">Mon</option>
+        <option value="Tue">Tue</option>
+        <option value="Wed">Wed</option>
+        <option value="Thu">Thu</option>
+        <option value="Fri">Fri</option>
+      </select>
+      <input type="text" id="subject" placeholder="Subject or activity" required />
+      <button type="submit">Add</button>
+    </form>
+
+    <table class="schedule-table">
+      <thead>
+        <tr>
+          <th>Time</th>
+          <th>Mon</th>
+          <th>Tue</th>
+          <th>Wed</th>
+          <th>Thu</th>
+          <th>Fri</th>
+        </tr>
+      </thead>
+      <tbody id="scheduleBody">
+        <!-- rows will be added by JavaScript -->
+      </tbody>
+    </table>
+
+    <button id="clearBtn">🗑 Clear All</button>
+  </div>
+
+  <script src="schedule.js"></script>
+</body>
+</html>

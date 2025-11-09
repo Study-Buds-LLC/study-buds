@@ -1,0 +1,127 @@
+/* 🌈 Study Buds Timetable — Google Style */
+
+* {
+  box-sizing: border-box;
+  font-family: 'Roboto', sans-serif;
+}
+
+body {
+  background: #f8f9fa;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  margin: 0;
+}
+
+.app {
+  background: white;
+  width: 90%;
+  max-width: 800px;
+  border-radius: 16px;
+  box-shadow: 0 8px 24px rgba(60,64,67,0.15);
+  padding: 25px 30px;
+  text-align: center;
+}
+
+/* Header */
+h1 {
+  color: #202124;
+  margin-bottom: 5px;
+}
+
+.highlight {
+  background: linear-gradient(90deg, #4285f4, #ea4335, #fbbc05, #34a853);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-weight: 700;
+}
+
+.subtitle {
+  color: #5f6368;
+  margin-bottom: 25px;
+}
+
+/* Form */
+form {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 25px;
+}
+
+input, select, button {
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid #dadce0;
+  font-size: 0.9em;
+}
+
+input:focus, select:focus {
+  outline: none;
+  border-color: #4285f4;
+  box-shadow: 0 0 0 2px rgba(66,133,244,0.2);
+}
+
+button {
+  background-color: #4285f4;
+  color: white;
+  border: none;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+button:hover {
+  background-color: #3367d6;
+}
+
+/* Table */
+.schedule-table {
+  width: 100%;
+  border-collapse: collapse;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(60,64,67,0.1);
+}
+
+th {
+  background: #f1f3f4;
+  color: #202124;
+  font-weight: 500;
+  padding: 10px;
+}
+
+td {
+  padding: 10px;
+  border-bottom: 1px solid #e0e0e0;
+  text-align: center;
+  vertical-align: middle;
+}
+
+tbody tr:hover {
+  background: #f8f9fa;
+}
+
+.subject {
+  background: #e8f0fe;
+  color: #1967d2;
+  border-radius: 6px;
+  padding: 5px 8px;
+  display: inline-block;
+  font-weight: 500;
+}
+
+#clearBtn {
+  margin-top: 15px;
+  background-color: #ea4335;
+  color: white;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+#clearBtn:hover {
+  background-color: #d93025;
+}
