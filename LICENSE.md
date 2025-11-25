@@ -1,4 +1,6 @@
 # Study Buds Public License (SBPL)
+![License: SPBL](https://img.shields.io/badge/License-SPBL-blue.svg)
+
 
 **Copyright (c) 2025 Study Buds LLC**
 
