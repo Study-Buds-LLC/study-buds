@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Study Buds Thai Quiz</title>
+
+<!-- Font Awesome -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+<style>
+body {
+    font-family: Arial, sans-serif;
+    background: linear-gradient(135deg, #a8edea, #fed6e3);
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding-top: 40px;
+    margin: 0;
+}
+
+.quiz-container {
+    background: #ffffffcc;
+    border-radius: 15px;
+    padding: 30px 25px;
+    width: 400px;
+    text-align: center;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+}
+
+.progress-bar {
+    width: 100%;
+    background: #ddd;
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 20px;
+}
+.progress-fill {
+    height: 12px;
+    width: 0%;
+    background: #4da6ff;
+    transition: width 0.3s;
+}
+
+.question {
+    font-size: 1.3rem;
+    margin-bottom: 20px;
+    font-weight: 600;
+}
+
+.answer-btn {
+    width: 100%;
+    padding: 12px;
+    margin: 10px 0;
+    border: none;
+    border-radius: 8px;
+    background: #4da6ff;
+    color: #fff;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: 0.2s;
+}
+.answer-btn:hover {
+    background: #1a8cff;
+    transform: translateY(-2px);
+}
+
+.result {
+    margin-top: 18px;
+    font-size: 1.2rem;
+    font-weight: bold;
+    min-height: 28px;
+}
+
+#add-question-btn {
+    margin-top: 20px;
+    padding: 10px;
+    background: #4da6ff;
+    border-radius: 8px;
+    border: none;
+    color: white;
+    cursor: pointer;
+}
+#add-question-btn:hover { background: #1a8cff; }
+
+/* Modal */
+.modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+}
+.modal-content {
+    background: #fff;
+    width: 90%;
+    max-width: 400px;
+    padding: 20px;
+    margin: 10% auto;
+    border-radius: 12px;
+}
+.modal-content input, .modal-content select {
+    width: 100%;
+    padding: 8px;
+    margin: 6px 0 12px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+}
+.modal-content button {
+    padding: 10px 15px;
+    background: #4da6ff;
+    border-radius: 8px;
+    border: none;
+    color: #fff;
+    cursor: pointer;
+}
+.close {
+    float: right;
+    cursor: pointer;
+    font-size: 22px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="quiz-container">
+    <div class="progress-bar">
+        <div class="progress-fill" id="progress-fill"></div>
+    </div>
+
+    <div class="question" id="question">Loading question...</div>
+
+    <button class="answer-btn" id="btn0"><span></span></button>
+    <button class="answer-btn" id="btn1"><span></span></button>
+    <button class="answer-btn" id="btn2"><span></span></button>
+    <button class="answer-btn" id="btn3"><span></span></button>
+
+    <div class="result" id="result"></div>
+
+    <button id="add-question-btn">Add Question</button>
+</div>
+
+<!-- Modal -->
+<div id="modal" class="modal">
+    <div class="modal-content">
+        <span class="close" id="close-modal">&times;</span>
+        <h3>Add New Thai Question</h3>
+
+        <input id="modal-question" placeholder="คำถาม (Thai)">
+        <input id="modal-a0" placeholder="ตัวเลือก 1">
+        <input id="modal-a1" placeholder="ตัวเลือก 2">
+        <input id="modal-a2" placeholder="ตัวเลือก 3">
+        <input id="modal-a3" placeholder="ตัวเลือก 4">
+
+        <select id="modal-correct">
+            <option value="0">Correct: Option 1</option>
+            <option value="1">Correct: Option 2</option>
+            <option value="2">Correct: Option 3</option>
+            <option value="3">Correct: Option 4</option>
+        </select>
+
+        <button onclick="addQuestionModal()">Add Question</button>
+    </div>
+</div>
+
+<audio id="correct-sound" src="correct.mp3"></audio>
+<audio id="wrong-sound" src="wrong.mp3"></audio>
+
+<script>
+let quiz = [
+    {
+        question: "สวัสดี แปลว่าอะไร?",
+        answers: [
+            {text: "Hello", correct: true},
+            {text: "Goodbye", correct: false},
+            {text: "Thank you", correct: false},
+            {text: "Sorry", correct: false}
+        ]
+    },
+    {
+        question: "ขอบคุณ หมายถึงอะไร?",
+        answers: [
+            {text: "Sorry", correct: false},
+            {text: "Thank you", correct: true},
+            {text: "See you", correct: false},
+            {text: "Good morning", correct: false}
+        ]
+    }
+];
+
+let currentQuestion = 0;
+
+function loadQuestion() {
+    if (currentQuestion >= quiz.length) {
+        document.getElementById("question").innerText = "🎉 คุณทำแบบทดสอบเสร็จแล้ว!";
+        for (let i = 0; i < 4; i++) document.getElementById("btn" + i).style.display = "none";
+        document.getElementById("progress-fill").style.width = "100%";
+        return;
+    }
+
+    const q = quiz[currentQuestion];
+    document.getElementById("question").innerText = q.question;
+
+    q.answers.forEach((a, i) => {
+        const btn = document.getElementById("btn" + i);
+        btn.querySelector("span").innerText = a.text;
+        btn.disabled = false;
+        btn.style.display = "block";
+        btn.onclick = () => checkAnswer(a.correct, btn);
+    });
+
+    document.getElementById("result").innerText = "";
+    document.getElementById("progress-fill").style.width =
+        (currentQuestion / quiz.length) * 100 + "%";
+}
+
+function checkAnswer(correct, btn) {
+    const result = document.getElementById("result");
+
+    if (correct) {
+        result.innerText = "✅ ถูกต้อง!";
+        document.getElementById("correct-sound").play();
+        for (let i = 0; i < 4; i++) document.getElementById("btn" + i).disabled = true;
+        currentQuestion++;
+        setTimeout(loadQuestion, 1200);
+    } else {
+        result.innerText = "❌ ผิด! ลองอีกครั้ง!";
+        document.getElementById("wrong-sound").play();
+        btn.style.backgroundColor = "#ff4d4d";
+        setTimeout(() => btn.style.backgroundColor = "#4da6ff", 500);
+    }
+}
+
+/* Modal */
+const modal = document.getElementById("modal");
+document.getElementById("add-question-btn").onclick = () => modal.style.display = "block";
+document.getElementById("close-modal").onclick = () => modal.style.display = "none";
+window.onclick = (e) => { if (e.target == modal) modal.style.display = "none"; }
+
+function addQuestionModal() {
+    const q = document.getElementById("modal-question").value;
+    const a0 = document.getElementById("modal-a0").value;
+    const a1 = document.getElementById("modal-a1").value;
+    const a2 = document.getElementById("modal-a2").value;
+    const a3 = document.getElementById("modal-a3").value;
+    const correct = parseInt(document.getElementById("modal-correct").value);
+
+    if (!q || !a0 || !a1 || !a2 || !a3) {
+        alert("กรุณากรอกข้อมูลให้ครบทุกช่อง");
+        return;
+    }
+
+    quiz.push({
+        question: q,
+        answers: [
+            {text: a0, correct: correct === 0},
+            {text: a1, correct: correct === 1},
+            {text: a2, correct: correct === 2},
+            {text: a3, correct: correct === 3},
+        ]
+    });
+
+    alert("เพิ่มคำถามแล้ว!");
+    modal.style.display = "none";
+
+    document.getElementById("modal-question").value = "";
+    document.getElementById("modal-a0").value = "";
+    document.getElementById("modal-a1").value = "";
+    document.getElementById("modal-a2").value = "";
+    document.getElementById("modal-a3").value = "";
+}
+
+loadQuestion();
+</script>
+
+</body>
+</html>

@@ -3,46 +3,190 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="lumo.png" type="image/x-icon">
+
+    <meta http-equiv="X-Frame-Options" content="DENY">
+    <meta http-equiv="Content-Security-Policy" content="frame-ancestors 'none';">
 
     <meta name="description" content="Let's make your learning, a dream!">
     <meta name="keywords" content="studying, reading, quizzes">
     <meta name="author" content="Study Buds LLC">
     <meta http-equiv="refresh" content="100">
-
-
+    
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <title>Study Buds</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="icon" href="lumo.png" type="image/x-icon" />
+  <title>Study Buds</title>
+  <meta name="description" content="Let's make your learning a dream!" />
+
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <style>
+    body {
+      background: #f7f8fa;
+      font-family: "Inter", sans-serif;
+      color: #333;
+      margin: 0;
+    }
+
+    .hero {
+      background: white;
+      max-width: 800px;
+      margin: 80px auto 40px;
+      padding: 40px;
+      border-radius: 20px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.07);
+      text-align: center;
+    }
+
+    .hero img {
+      width: 90px;
+      height: 90px;
+      border-radius: 16px;
+      margin-bottom: 20px;
+    }
+
+    .hero h1 {
+      font-size: 2.4rem;
+      margin-bottom: 10px;
+      font-weight: 600;
+    }
+
+    .hero p {
+      font-size: 1.1rem;
+      color: #555;
+      margin-bottom: 25px;
+    }
+
+    .steps {
+      display: flex;
+      flex-direction: column;
+      gap: 30px;
+      max-width: 700px;
+      margin: 0 auto 50px;
+    }
+
+    .step {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .step-icon {
+      font-size: 2rem;
+      width: 50px;
+      text-align: center;
+    }
+
+    .step-text h3 {
+      margin: 0;
+      font-size: 1.3rem;
+    }
+
+    .step-text p {
+      margin: 5px 0 0;
+      color: #555;
+    }
+
+    .button-row {
+      text-align: center;
+      margin-bottom: 60px;
+    }
+
+    .button-row .btn {
+      margin: 5px;
+      padding: 12px 25px;
+      border-radius: 10px;
+      font-weight: 600;
+      transition: transform 0.2s;
+    }
+
+    .button-row .btn:hover {
+      transform: translateY(-2px);
+    }
+
+    .testimonials {
+      max-width: 800px;
+      margin: 0 auto 60px;
+    }
+
+    .testimonial {
+      background: white;
+      border-radius: 16px;
+      padding: 25px 30px;
+      box-shadow: 0 3px 15px rgba(0,0,0,0.06);
+      margin-bottom: 20px;
+    }
+
+    .testimonial p {
+      font-style: italic;
+      color: #444;
+    }
+
+    .testimonial .author {
+      text-align: right;
+      margin-top: 15px;
+      font-weight: 600;
+      color: #333;
+    }
+
+    footer {
+      text-align: center;
+      padding: 20px;
+      color: #777;
+      font-size: 0.9rem;
+    }
+  </style>
 </head>
+
 <body>
-    <div class="container m-3">
-        <div class="d-flex" style="gap: 20px;
-                                   align-items: center;
-                                   text-align: center;
-                                   background-color: hsl(210, 100%, 82%);
-                                   padding: 10px;
-                                   border-radius: 6px;
-                                   border: 2px solid blue;
-                                   width: fit-content;
-                                   box-shadow: 5px 5px 0px dodgerblue;">
-            <div class="d-block">
-                <h1>Study Buds</h1>
-                <p>Where learning becomes fun</p>
-            </div>
-            <a href="login.html" target="_blank">
-                <button class="btn btn-primary">Get Started</button>
-            </a>
-            <button id="view-btn" class="btn btn-secondary">Why Study Buds?</button>
-        </div>
+
+  <div class="hero">
+    <img src="lumo.png" alt="Study Buds Logo" />
+    <h1>Study Buds</h1>
+    <p>Learning made fun & confident in just 20 minutes a day</p>
+  </div>
+
+  <div class="steps">
+    <div class="step">
+      <div class="step-icon">1️⃣</div>
+      <div class="step-text">
+        <h3>Daily Personalized Practice</h3>
+        <p>Answer tailored questions that match what you're learning in school.</p>
+      </div>
     </div>
-    <h2 class="m-5" style="font-family: 'Comic Sans MS';
-                           font-weight: bold;
-                           font-size: 1.7rem;">&OpenCurlyDoubleQuote;Login or Signup now and... <br> ...just use it for a while and soon you will get the hang of it!&CloseCurlyDoubleQuote;</h2>
+
+    <div class="step">
+      <div class="step-icon">🏆</div>
+      <div class="step-text">
+        <h3>Earn Rewards</h3>
+        <p>Get coins, badges, and level up as you improve your skills.</p>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-icon">📈</div>
+      <div class="step-text">
+        <h3>Track Your Progress</h3>
+        <p>See how you grow, where you excel, and build real confidence.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="button-row">
+    <a href="login.html" class="btn btn-primary">Get Started</a>
+    <button id="view-btn" class="btn btn-outline-secondary">Why Study Buds?</button>
+    <a href="chat.html" class="btn btn-outline-primary">Chat Anonymously</a>
+  </div>
+
+
+  <script>
+    document.getElementById("view-btn").addEventListener("click", () => {
+      window.open("popup.html", "Why Study Buds", "width=420,height=550");
+    });
+  </script>
 </body>
 </html>
-<script>
-    const view_btn = document.getElementById("view-btn");
 
-    view_btn.addEventListener("click", event => {
-        window.open("popup.html", "Viewing Advert...", "width=400,height=500");
-    });
-</script>

@@ -1,0 +1,34 @@
+# Study Buds Public License (SBPL)
+![License: SPBL](https://img.shields.io/badge/License-SPBL-blue.svg)
+
+
+**Copyright (c) 2025 Study Buds LLC**
+
+----
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this website or its associated files (the "Software"), to **deal in the Software without restriction**, including without limitation the rights to:
+
+- **Use**
+- **Copy**
+- **Modify**
+- **Merge**
+- **Publish**
+- **Distribute**
+- **Sublicense**
+- **Sell copies** of the Software  
+
+and to permit persons to whom the Software is furnished to do so, **subject to the following conditions**:
+
+> The above copyright notice and this permission notice shall be included in **all copies or substantial portions of the Software**.
+
+---
+
+### Disclaimer
+
+THE SOFTWARE IS PROVIDED **"AS IS"**, **WITHOUT WARRANTY OF ANY KIND**, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF:
+
+- **MERCHANTABILITY**
+- **FITNESS FOR A PARTICULAR PURPOSE**
+- **NONINFRINGEMENT**
+
+In no event shall **Study Buds LLC** or its authors be liable for **any claim, damages, or other liability**, whether in an action of contract, tort, or otherwise, arising from, out of, or in connection with the Software or the use or other dealings in the Software.
