@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Study Buds Science Quiz</title>
+
+<!-- Font Awesome for nice icons -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+
+<style>
+body { font-family: Arial, sans-serif; background:#f7f9fc; margin:0; display:flex; min-height:100vh; }
+.sidebar { background-color:#16a085; color:white; padding:20px; width:200px; display:flex; flex-direction:column; gap:10px; }
+.sidebar h2 { margin-top:0; text-align:center; }
+.question-number { background: rgba(255,255,255,0.15); padding:8px; border-radius:5px; text-align:center; cursor:pointer; transition: background 0.3s; user-select:none; }
+.question-number.active { background:white; color:#16a085; font-weight:bold; }
+.question-number.correct { background:#2ecc71; color:white; }
+.question-number.wrong { background:#e74c3c; color:white; }
+.question-number.skipped { background:#7f8c8d; color:white; opacity:0.6; cursor:not-allowed; }
+
+.quiz-container { flex-grow:1; display:flex; flex-direction:column; justify-content:center; align-items:center; padding:30px; text-align:center; }
+.question { font-size:20px; margin-bottom:15px; }
+.question-hint { font-style:italic; color:#555; margin-bottom:15px; }
+
+/* Normal answer input */
+input[type="text"] { padding:8px; font-size:18px; width:220px; text-align:center; border:2px solid #ccc; border-radius:5px; }
+
+/* Fraction input */
+.fraction { display:none; margin:auto; }
+.fraction input { width:80px; text-align:center; font-size:18px; padding:5px; border:2px solid #ccc; border-radius:5px; display:block; margin:0 auto; }
+.fraction .divider { width:80px; height:2px; background:#000; margin:2px auto; }
+
+/* Buttons */
+.buttons { margin-top:15px; display:flex; gap:10px; }
+button { padding:10px 20px; border:none; background-color:#16a085; color:white; border-radius:5px; font-size:16px; cursor:pointer; transition: background 0.3s; }
+button:hover { background-color:#0f7864; }
+
+.score { margin-top:20px; font-weight:bold; color:#2c3e50; }
+
+/* Worm animation */
+.worm { display:none; position:relative; margin-top:40px; width:220px; height:110px; animation: wiggle 1s infinite ease-in-out; }
+@keyframes wiggle { 0%,100%{transform:translateY(0);} 50%{transform:translateY(-5px);} }
+.segment { width:44px; height:44px; background-color:#f6e58d; border:3px solid #f39c12; border-radius:50%; position:absolute; top:30px; }
+.segment:nth-child(1){left:0;} .segment:nth-child(2){left:38px;} .segment:nth-child(3){left:76px;} .segment:nth-child(4){left:114px;} .segment:nth-child(5){left:152px;}
+.face { position:absolute; top:30px; left:152px; width:44px; height:44px; border-radius:50%; border:3px solid #f39c12; background-color:#f6e58d; }
+.eye { width:8px; height:8px; background:black; border-radius:50%; position:absolute; top:12px; }
+.eye.left { left:8px; } .eye.right { right:8px; }
+.mouth { width:22px; height:12px; border:2px solid black; position:absolute; bottom:8px; left:9px; border-radius:0 0 20px 20px; }
+.mouth.sad { border-radius:20px 20px 0 0; bottom:12px; transform:rotate(180deg); }
+
+@media(max-width:700px){ body{flex-direction:column;} .sidebar{flex-direction:row;width:100%;overflow-x:auto;justify-content:center;} .question-number{min-width:40px;font-size:14px;} }
+</style>
+</head>
+<body>
+
+<div class="sidebar" id="sidebar"><h2>Science Quiz</h2></div>
+
+<div class="quiz-container">
+    <div class="question-hint" id="hint"></div>
+    <div class="question" id="question"></div>
+
+    <!-- Normal answer -->
+    <input type="text" id="answer" placeholder="Your answer">
+
+    <!-- Fraction answer -->
+    <div class="fraction" id="fraction-input">
+        <input type="text" id="numerator" placeholder="numerator">
+        <div class="divider"><i class="fa-solid fa-minus"></i></div>
+        <input type="text" id="denominator" placeholder="denominator">
+    </div>
+
+    <div class="buttons">
+        <button id="submitBtn" onclick="submitAnswer()"><i class="fa-solid fa-check"></i> Submit</button>
+        <button id="skipBtn" onclick="skipQuestion()"><i class="fa-solid fa-forward"></i> Skip</button>
+        <button id="nextBtn" style="display:none;" onclick="nextQuestion()"><i class="fa-solid fa-arrow-right"></i> Next</button>
+    </div>
+    <div class="score" id="score"></div>
+
+    <div class="worm" id="worm">
+        <div class="segment"></div>
+        <div class="segment"></div>
+        <div class="segment"></div>
+        <div class="segment"></div>
+        <div class="face">
+            <div class="eye left"></div>
+            <div class="eye right"></div>
+            <div class="mouth" id="mouth"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Audio placeholders (replace with real mp3 files or remove) -->
+<audio id="correctSound" src="correct.mp3"></audio>
+<audio id="wrongSound" src="wrong.mp3"></audio>
+
+<script>
+// -------------------------
+// Science Quiz Data
+// -------------------------
+const questionBank = [
+    {type:"normal", q:"Which pole of a magnet is attracted to the south pole of another magnet?", a:"north", hint:"Opposites attract."},
+    {type:"normal", q:"What process do plants use to make food using sunlight?", a:"photosynthesis", hint:"It creates sugar from sunlight, water and carbon dioxide."},
+    {type:"normal", q:"Which organ pumps blood around the body?", a:"heart", hint:"It's a strong muscular pump."},
+    {type:"normal", q:"Which sense do we use to taste food?", a:"taste", hint:"One of the five senses."},
+    {type:"normal", q:"Which era is known as the age of dinosaurs?", a:"Mesozoic", hint:"Three periods: Triassic, Jurassic, Cretaceous."},
+    {type:"multiple", q:"Name two magnetic materials from the list: iron, wood, plastic, nickel", a:"iron,nickel", hint:"Metals with magnetic properties."},
+    {type:"normal", q:"Which part of the plant absorbs water from the soil? (roots / stem / leaf)", a:"roots", hint:"Grows underground."},
+    {type:"normal", q:"How many legs does an insect typically have?", a:"6", hint:"Think of ants or beetles."},
+    {type:"multiple", q:"Which two senses help you when crossing the street? (choose two): sight, smell, taste, hearing", a:"sight,hearing", hint:"You need to see cars and often hear them."},
+    {type:"fraction", q:"You found 1/4 of a fossil and later found 3/4 more. What fraction of the fossil do you have now?", a:"4/4", hint:"Add the fractions."},
+    {type:"normal", q:"Water at room temperature is usually in which state of matter: solid, liquid, or gas?", a:"liquid", hint:"Think of a glass of water."},
+    {type:"normal", q:"What force pulls objects toward Earth?", a:"gravity", hint:"It's what keeps us on the ground."}
+];
+
+const totalQuestions = questionBank.length;
+let questions=[], correctAnswers=[], hints=[], types=[], currentQuestion=0;
+let userAnswers = Array(totalQuestions).fill(null);
+let status = Array(totalQuestions).fill("pending");
+let score = 0;
+
+// Audio
+const correctSound = document.getElementById("correctSound");
+const wrongSound = document.getElementById("wrongSound");
+
+// Initialize
+questions = questionBank.map(q=>q.q);
+correctAnswers = questionBank.map(q=>q.a.toString().toLowerCase());
+hints = questionBank.map(q=>q.hint);
+types = questionBank.map(q=>q.type);
+
+// Sidebar
+const sidebar = document.getElementById('sidebar');
+function createSidebar(){
+    const existing = sidebar.querySelectorAll('.question-number'); existing.forEach(n=>n.remove());
+    for(let i=0;i<totalQuestions;i++){
+        const div = document.createElement('div');
+        div.className = 'question-number';
+        div.textContent = i+1;
+        div.onclick = () => { if(status[i]!=='skipped') showQuestion(i); };
+        sidebar.appendChild(div);
+    }
+}
+
+function updateSidebar(){
+    document.querySelectorAll('.question-number').forEach((item,i)=>{
+        item.className = 'question-number';
+        if(i===currentQuestion) item.classList.add('active');
+        if(status[i]==='correct') item.classList.add('correct');
+        if(status[i]==='wrong') item.classList.add('wrong');
+        if(status[i]==='skipped') item.classList.add('skipped');
+    });
+}
+
+// Show question
+function showQuestion(index){
+    currentQuestion=index;
+    document.getElementById('question').textContent=`Q${index+1}: ${questions[index]}`;
+    document.getElementById('hint').textContent=hints[index]||'';
+
+    document.getElementById('answer').style.display = (types[index]!=='fraction') ? 'block' : 'none';
+    document.getElementById('fraction-input').style.display = (types[index]==='fraction') ? 'block' : 'none';
+
+    document.getElementById('answer').value='';
+    document.getElementById('numerator').value='';
+    document.getElementById('denominator').value='';
+
+    document.getElementById('submitBtn').style.display='inline-block';
+    document.getElementById('skipBtn').style.display='inline-block';
+    document.getElementById('nextBtn').style.display='none';
+
+    updateSidebar();
+}
+
+// Helper to normalize answers for comparison
+function normalize(s){
+    return s.toString().trim().toLowerCase().replace(/\s+/g,'');
+}
+
+// Submit answer
+function submitAnswer(){
+    let val='';
+    if(types[currentQuestion]==='fraction'){
+        const num = document.getElementById('numerator').value.trim();
+        const den = document.getElementById('denominator').value.trim();
+        if(!num||!den) return alert("Enter numerator and denominator!");
+        val = num+'/'+den;
+    } else val = document.getElementById('answer').value.trim();
+
+    if(!val) return alert("Enter an answer!");
+    userAnswers[currentQuestion]=val;
+
+    // Compare for multiple-answer questions: order-insensitive
+    const correct = correctAnswers[currentQuestion];
+    if(types[currentQuestion]==='multiple'){
+        const got = normalize(val).split(',').map(x=>x.trim()).filter(x=>x);
+        const want = normalize(correct).split(',').map(x=>x.trim()).filter(x=>x);
+        // compare sets
+        const gotSet = new Set(got);
+        const wantSet = new Set(want);
+        const equal = got.length===want.length && want.every(w=>gotSet.has(w));
+        if(equal){
+            status[currentQuestion]='correct'; score++; correctSound.play(); alert("✅ Correct!"); document.getElementById('nextBtn').style.display='inline-block';
+        } else { status[currentQuestion]='wrong'; wrongSound.play(); alert("❌ Wrong! Try again!"); }
+    } else {
+        if(normalize(val)===normalize(correct)){
+            status[currentQuestion]='correct'; score++; correctSound.play(); alert("✅ Correct!"); document.getElementById('nextBtn').style.display='inline-block';
+        } else {
+            status[currentQuestion]='wrong'; wrongSound.play(); alert("❌ Wrong! Try again!");
+        }
+    }
+    updateSidebar();
+}
+
+// Skip & next
+function skipQuestion(){
+    status[currentQuestion]='skipped';
+    userAnswers[currentQuestion]=null;
+    updateSidebar();
+    nextQuestion();
+}
+
+function nextQuestion(){
+    let next=-1;
+    for(let i=currentQuestion+1;i<totalQuestions;i++){if(status[i]==='pending'){next=i;break;}}
+    if(next===-1){for(let i=0;i<totalQuestions;i++){if(status[i]==='pending'){next=i;break;}}}
+    if(next!==-1) showQuestion(next); else finishQuiz();
+}
+
+// Finish quiz
+function finishQuiz(){
+    document.getElementById('question').textContent="🎉 Quiz Finished!";
+    document.getElementById('hint').textContent='';
+    document.getElementById('answer').style.display='none';
+    document.getElementById('fraction-input').style.display='none';
+    document.querySelector('.buttons').style.display='none';
+    document.getElementById('score').textContent=`Your final score: ${score}/${totalQuestions}`;
+    updateSidebar();
+    const worm=document.getElementById('worm'); worm.style.display='block';
+    const mouth=document.getElementById('mouth');
+    if(score>=Math.ceil(totalQuestions/2)) mouth.classList.remove('sad'); else mouth.classList.add('sad');
+}
+
+// Initialize
+createSidebar();
+showQuestion(0);
+</script>
+</body>
+</html>
