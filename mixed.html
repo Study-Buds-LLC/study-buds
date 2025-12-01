@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Study Buds - Lumo Park Challenge</title>
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet"
+     href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #c8f5ff;
+            text-align: center;
+            padding: 20px;
+        }
+
+        #game-box {
+            width: 90%;
+            max-width: 700px;
+            margin: auto;
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.15);
+        }
+
+        #path {
+            margin: 30px 0;
+            display: flex;
+            justify-content: space-between;
+            position: relative;
+            height: 80px;
+        }
+
+        .spot {
+            width: 60px;
+            height: 60px;
+            text-align: center;
+            font-size: 40px;
+            color: #888;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .park {
+            color: green;
+        }
+
+        #lumo {
+            width: 60px;
+            height: 60px;
+            position: absolute;
+            top: 10px;
+            transition: transform 1.8s ease; /* slow humaworm speed */
+            z-index: 10;
+        }
+
+        .question-box {
+            font-size: 22px;
+            margin-top: 20px;
+        }
+
+        input {
+            padding: 10px;
+            font-size: 18px;
+            width: 200px;
+            margin-top: 10px;
+        }
+
+        button {
+            padding: 10px 22px;
+            font-size: 18px;
+            margin-top: 10px;
+            cursor: pointer;
+        }
+
+        #win-message {
+            font-size: 28px;
+            margin-top: 20px;
+            color: green;
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+
+<div id="game-box">
+
+    <h1>🌟 Lumo's Walk to the Park 🌟</h1>
+
+    <div id="path"></div>
+
+    <div id="question-area">
+        <div class="question-box" id="question"></div>
+        <input type="text" id="answer" autocomplete="off" placeholder="Your answer...">
+        <br>
+        <button onclick="submitAnswer()">Submit</button>
+    </div>
+
+    <div id="win-message">🎉 Lumo reached the park! You're amazing! 🎉</div>
+</div>
+
+<script>
+    const totalSteps = 8;
+    let step = 0;
+
+    // Sounds
+    const correctSFX = new Audio("correct.mp3");
+    const wrongSFX = new Audio("wrong.mp3");
+    const walkSFX = new Audio("Walk.mp3");
+    walkSFX.preload = "auto";
+
+    // Questions
+    const questions = [
+        { q: "What is 2 + 3?", a: "5" },
+        { q: "Spell 'cat'", a: "cat" },
+        { q: "What planet do humans live on?", a: "earth" },
+        { q: "What is 10 - 6?", a: "4" },
+        { q: "What color is grass?", a: "green" },
+        { q: "What is 3 × 3?", a: "9" },
+        { q: "Spell 'sun'", a: "sun" },
+        { q: "What is 12 ÷ 3?", a: "4" }
+    ];
+
+    // Build the path
+    function buildPath() {
+        let html = "";
+
+        for (let i = 0; i < totalSteps; i++) {
+            if (i === totalSteps - 1) {
+                html += `<div class='spot park'><i class="fa-solid fa-tree"></i></div>`;
+            } else {
+                html += `<div class='spot'><i class="fa-regular fa-circle"></i></div>`;
+            }
+        }
+
+        document.getElementById("path").innerHTML = html;
+
+        // Add Lumo image ON TOP
+        const img = document.createElement("img");
+        img.src = "lumo.png";
+        img.id = "lumo";
+        document.getElementById("path").appendChild(img);
+
+        updatePosition();
+        updateQuestion();
+    }
+
+    // Move Lumo with animation + sound
+    function updatePosition() {
+        const lumo = document.getElementById("lumo");
+        const target = document.getElementsByClassName("spot")[step];
+
+        const pathRect = document.getElementById("path").getBoundingClientRect();
+        const spotRect = target.getBoundingClientRect();
+
+        const x = spotRect.left - pathRect.left;
+
+        walkSFX.currentTime = 0;
+        walkSFX.play();
+
+        lumo.style.transform = `translateX(${x}px)`;
+    }
+
+    function updateQuestion() {
+        document.getElementById("question").innerText = questions[step].q;
+    }
+
+    function submitAnswer() {
+        const input = document.getElementById("answer").value.trim().toLowerCase();
+        const correct = questions[step].a.toLowerCase();
+
+        if (input === correct) {
+            correctSFX.play();
+            step++;
+
+            if (step >= totalSteps - 1) {
+                updatePosition();
+                finishGame();
+            } else {
+                updatePosition();
+                updateQuestion();
+            }
+        } else {
+            wrongSFX.play();
+            alert("Oops! Try again!");
+        }
+
+        document.getElementById("answer").value = "";
+    }
+
+    function finishGame() {
+        document.getElementById("question-area").style.display = "none";
+        document.getElementById("win-message").style.display = "block";
+    }
+
+    // Start game
+    buildPath();
+</script>
+
+</body>
+</html>
