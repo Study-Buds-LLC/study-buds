@@ -9,79 +9,109 @@
 
     <style>
         body {
-            font-family: Arial, sans-serif;
-            background: #c8f5ff;
+            font-family: "Segoe UI", Arial, sans-serif;
+            background: #f0f0f0;
+            padding: 30px;
+            color: #222;
             text-align: center;
-            padding: 20px;
         }
 
         #game-box {
             width: 90%;
-            max-width: 700px;
+            max-width: 750px;
             margin: auto;
-            background: white;
-            padding: 25px;
-            border-radius: 15px;
-            box-shadow: 0 0 20px rgba(0,0,0,0.15);
+            background: #ffffff;
+            padding: 30px;
+            border-radius: 8px;
+            border: 1px solid #dadada;
+            box-shadow: 0px 4px 25px rgba(0,0,0,0.06);
+        }
+
+        h1 {
+            font-size: 28px;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #333;
         }
 
         #path {
-            margin: 30px 0;
+            margin: 20px 0 40px;
             display: flex;
             justify-content: space-between;
             position: relative;
-            height: 80px;
+            height: 70px;
         }
 
         .spot {
-            width: 60px;
-            height: 60px;
-            text-align: center;
-            font-size: 40px;
-            color: #888;
+            width: 55px;
+            height: 55px;
+            font-size: 34px;
+            color: #7c7c7c;
             display: flex;
             align-items: center;
             justify-content: center;
         }
 
         .park {
-            color: green;
+            color: #246b24;
         }
 
         #lumo {
-            width: 60px;
-            height: 60px;
+            width: 55px;
+            height: 55px;
             position: absolute;
-            top: 10px;
-            transition: transform 1.8s ease; /* slow humaworm speed */
+            top: 6px;
+            transition: transform 1.8s ease;
             z-index: 10;
         }
 
-        .question-box {
-            font-size: 22px;
+        #question-area {
             margin-top: 20px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            background: #fafafa;
+            border-radius: 6px;
+            text-align: left;
         }
 
-        input {
+        .question-box {
+            font-size: 20px;
+            margin-bottom: 10px;
+            font-weight: 500;
+        }
+
+        input[type=text] {
             padding: 10px;
+            width: 250px;
             font-size: 18px;
-            width: 200px;
-            margin-top: 10px;
+            border: 1px solid #cccccc;
+            border-radius: 5px;
+            margin-top: 8px;
         }
 
         button {
-            padding: 10px 22px;
-            font-size: 18px;
-            margin-top: 10px;
+            padding: 10px 20px;
+            margin-top: 15px;
+            font-size: 17px;
+            border-radius: 5px;
+            background: #3559a6;
+            color: white;
+            border: none;
             cursor: pointer;
         }
 
-        #win-message {
-            font-size: 28px;
-            margin-top: 20px;
-            color: green;
-            display: none;
+        button:hover {
+            background: #244487;
         }
+
+        #win-message {
+            margin-top: 25px;
+            font-size: 24px;
+            color: #246b24;
+            display: none;
+            font-weight: 600;
+        }
+
     </style>
 </head>
 
@@ -89,31 +119,29 @@
 
 <div id="game-box">
 
-    <h1>🌟 Lumo's Walk to the Park 🌟</h1>
+    <h1>Lumo Park Challenge</h1>
 
     <div id="path"></div>
 
     <div id="question-area">
         <div class="question-box" id="question"></div>
-        <input type="text" id="answer" autocomplete="off" placeholder="Your answer...">
+        <input type="text" id="answer" autocomplete="off" placeholder="Enter answer here">
         <br>
         <button onclick="submitAnswer()">Submit</button>
     </div>
 
-    <div id="win-message">🎉 Lumo reached the park! You're amazing! 🎉</div>
+    <div id="win-message">Lumo reached the park. Good job.</div>
 </div>
 
 <script>
     const totalSteps = 8;
     let step = 0;
 
-    // Sounds
     const correctSFX = new Audio("correct.mp3");
     const wrongSFX = new Audio("wrong.mp3");
     const walkSFX = new Audio("Walk.mp3");
     walkSFX.preload = "auto";
 
-    // Questions
     const questions = [
         { q: "What is 2 + 3?", a: "5" },
         { q: "Spell 'cat'", a: "cat" },
@@ -125,7 +153,6 @@
         { q: "What is 12 ÷ 3?", a: "4" }
     ];
 
-    // Build the path
     function buildPath() {
         let html = "";
 
@@ -139,7 +166,6 @@
 
         document.getElementById("path").innerHTML = html;
 
-        // Add Lumo image ON TOP
         const img = document.createElement("img");
         img.src = "lumo.png";
         img.id = "lumo";
@@ -149,7 +175,6 @@
         updateQuestion();
     }
 
-    // Move Lumo with animation + sound
     function updatePosition() {
         const lumo = document.getElementById("lumo");
         const target = document.getElementsByClassName("spot")[step];
@@ -186,7 +211,7 @@
             }
         } else {
             wrongSFX.play();
-            alert("Oops! Try again!");
+            alert("Incorrect. Try again.");
         }
 
         document.getElementById("answer").value = "";
@@ -197,7 +222,6 @@
         document.getElementById("win-message").style.display = "block";
     }
 
-    // Start game
     buildPath();
 </script>
 
