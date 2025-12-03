@@ -1,0 +1,392 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Study Buds — Picture Designer (HTML)</title>
+  <style>
+    :root{--bg:#f3f6fb;--panel:#ffffff;--accent:#2563eb;--muted:#64748b}
+    *{box-sizing:border-box;font-family:Inter,ui-sans-serif,system-ui,Helvetica,Arial}
+    body{margin:0;background:var(--bg);color:#0f172a}
+    .app{max-width:1100px;margin:28px auto;padding:18px;display:grid;grid-template-columns:320px 1fr;gap:18px}
+    .panel{background:var(--panel);border-radius:12px;padding:14px;box-shadow:0 6px 18px rgba(12,16,24,0.06)}
+    h2{margin:0 0 8px;font-size:16px}
+    .toolbar{display:flex;flex-direction:column;gap:10px}
+    .row{display:flex;gap:8px;align-items:center}
+    label{font-size:13px;color:var(--muted)}
+    input[type=color]{width:44px;height:34px;border:0;padding:0}
+    input[type=range]{width:100%}
+    button{background:var(--accent);color:white;border:0;padding:8px 10px;border-radius:8px;cursor:pointer}
+    button.ghost{background:transparent;color:var(--muted);border:1px solid #e6eefc}
+    .canvas-wrap{position:relative;background:linear-gradient(180deg,#fff,#fbfdff);border-radius:12px;padding:12px;min-height:540px}
+    #designerCanvas{width:100%;height:540px;border-radius:8px;background:white;display:block}
+    .overlay-object{position:absolute;touch-action:none;cursor:move;user-select:none}
+    .text-box{padding:6px 8px;border-radius:6px;background:transparent;border:1px dashed transparent}
+    .text-box.selected{outline:2px solid rgba(37,99,235,0.15);background:rgba(255,255,255,0.6);border-color:#cfe3ff}
+    .stick{width:96px;height:96px}
+    .controls-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+    .footer-actions{display:flex;gap:8px;justify-content:flex-end}
+    input[type=file]{display:none}
+    .small{font-size:12px;padding:6px 8px}
+  </style>
+</head>
+<body>
+  <div class="app">
+    <div class="panel toolbar" style="height:fit-content">
+      <h2>Tools</h2>
+      <div class="row">
+        <label>Mode</label>
+        <select id="mode" style="margin-left:auto">
+          <option value="draw">Draw</option>
+          <option value="erase">Erase</option>
+          <option value="move">Move objects</option>
+          <option value="text">Add text</option>
+        </select>
+      </div>
+
+      <div class="row">
+        <label>Brush</label>
+        <input type="color" id="color" value="#0f172a" style="margin-left:8px">
+        <input type="range" id="size" min="1" max="60" value="6" style="margin-left:8px">
+      </div>
+
+      <div class="row">
+        <label>Stickers</label>
+        <div style="margin-left:auto;display:flex;gap:6px">
+          <button class="ghost small" id="addSmiley">🙂</button>
+          <button class="ghost small" id="addStar">⭐</button>
+          <button class="ghost small" id="addBook">📚</button>
+        </div>
+      </div>
+
+      <div class="row">
+        <label>Background</label>
+        <div style="margin-left:auto;display:flex;gap:6px">
+          <label class="ghost small" for="bgUpload" style="cursor:pointer">Upload</label>
+          <input id="bgUpload" type="file" accept="image/*">
+          <button id="clearBg" class="ghost small">Clear</button>
+        </div>
+      </div>
+
+      <div class="row">
+        <label>Text</label>
+        <input id="textInput" placeholder="Type text and press Add" style="flex:1;margin-left:8px">
+        <button id="addText" class="small">Add</button>
+      </div>
+
+      <h2 style="margin-top:12px">Actions</h2>
+      <div class="controls-grid">
+        <button id="undoBtn" class="small">Undo</button>
+        <button id="clearBtn" class="small">Clear Canvas</button>
+        <button id="exportBtn" class="small">Export PNG</button>
+        <button id="downloadBtn" class="small">Download PNG</button>
+      </div>
+
+      <h2 style="margin-top:12px">Layers / Selection</h2>
+      <div class="row">
+        <button id="bringForward" class="small">Bring Forward</button>
+        <button id="sendBack" class="small">Send Back</button>
+      </div>
+      <div class="row" style="margin-top:8px">
+        <label style="flex:1">Selected item:</label>
+        <div id="selectedInfo" style="min-width:120px;text-align:right;color:var(--muted)">none</div>
+      </div>
+
+    </div>
+
+    <div class="panel">
+      <h2>Designer</h2>
+      <div class="canvas-wrap" id="canvasWrap">
+        <canvas id="designerCanvas"></canvas>
+        <!-- Overlay container for text and stickers (absolutely positioned) -->
+        <div id="overlay" style="position:absolute;inset:12px;pointer-events:none"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Simple picture designer in one file.
+    const canvas = document.getElementById('designerCanvas');
+    const overlay = document.getElementById('overlay');
+    const ctx = canvas.getContext('2d');
+    const modeEl = document.getElementById('mode');
+    const colorEl = document.getElementById('color');
+    const sizeEl = document.getElementById('size');
+    const undoBtn = document.getElementById('undoBtn');
+    const clearBtn = document.getElementById('clearBtn');
+    const exportBtn = document.getElementById('exportBtn');
+    const downloadBtn = document.getElementById('downloadBtn');
+    const addTextBtn = document.getElementById('addText');
+    const textInput = document.getElementById('textInput');
+    const bgUpload = document.getElementById('bgUpload');
+    const clearBg = document.getElementById('clearBg');
+    const addSmiley = document.getElementById('addSmiley');
+    const addStar = document.getElementById('addStar');
+    const addBook = document.getElementById('addBook');
+    const bringForward = document.getElementById('bringForward');
+    const sendBack = document.getElementById('sendBack');
+    const selectedInfo = document.getElementById('selectedInfo');
+
+    // Canvas physical size
+    function resizeCanvas() {
+      const rect = canvas.getBoundingClientRect();
+      // set backing store size for crispness
+      canvas.width = Math.floor(rect.width * devicePixelRatio);
+      canvas.height = Math.floor(rect.height * devicePixelRatio);
+      ctx.scale(devicePixelRatio, devicePixelRatio);
+      redrawAll();
+    }
+
+    // initial size
+    canvas.style.width = '100%';
+    canvas.style.height = '540px';
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+
+    // State
+    let drawing = false;
+    let history = []; // dataURL stack for undo (background + strokes)
+    let bgImage = null;
+    let objects = []; // overlay objects: {id, type:'text'|'sticker', x,y, w,h, content, fontSize, color}
+    let selectedId = null;
+
+    // Helpers
+    function pushHistory() {
+      history.push(canvas.toDataURL());
+      if (history.length > 30) history.shift();
+    }
+    function undo() {
+      if (history.length <= 1) return clearCanvas(true);
+      history.pop();
+      const d = history[history.length-1];
+      const img = new Image();
+      img.onload = () => { ctx.clearRect(0,0,canvas.width,canvas.height); ctx.drawImage(img,0,0,canvas.width/devicePixelRatio,canvas.height/devicePixelRatio); };
+      img.src = d;
+    }
+
+    function clearCanvas(skipHistory){
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+      if (!skipHistory) pushHistory();
+      redrawAll();
+    }
+
+    // Drawing events
+    canvas.addEventListener('pointerdown', (e) => {
+      const mode = modeEl.value;
+      const rect = canvas.getBoundingClientRect();
+      const x = (e.clientX - rect.left);
+      const y = (e.clientY - rect.top);
+      if (mode === 'draw' || mode === 'erase'){
+        drawing = true;
+        ctx.beginPath();
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        ctx.lineWidth = parseInt(sizeEl.value,10);
+        ctx.strokeStyle = (mode === 'erase') ? '#ffffff' : colorEl.value;
+        ctx.moveTo(x,y);
+      } else if (mode === 'text'){
+        // add text at point
+        const txt = textInput.value.trim();
+        if (!txt) return;
+        const id = 'obj_'+Date.now();
+        const el = createTextElement(id, txt, x, y);
+        objects.push(el);
+        overlay.appendChild(el.dom);
+        selectObject(id);
+      }
+    });
+    canvas.addEventListener('pointermove', (e) => {
+      if (!drawing) return;
+      const rect = canvas.getBoundingClientRect();
+      const x = (e.clientX - rect.left);
+      const y = (e.clientY - rect.top);
+      ctx.lineTo(x,y);
+      ctx.stroke();
+    });
+    canvas.addEventListener('pointerup', (e) => {
+      if (drawing){ ctx.closePath(); drawing=false; pushHistory(); }
+    });
+    canvas.addEventListener('pointerleave', (e) => { if (drawing){ ctx.closePath(); drawing=false; pushHistory(); } });
+
+    // Redraw objects and background
+    function redrawAll(){
+      // draw background image (if any) onto canvas
+      ctx.save();
+      ctx.setTransform(1,0,0,1,0,0); // reset scale for background drawing
+      ctx.clearRect(0,0,canvas.width/devicePixelRatio,canvas.height/devicePixelRatio);
+      if (bgImage){
+        // draw to fit
+        const cw = canvas.width/devicePixelRatio, ch = canvas.height/devicePixelRatio;
+        const ratio = Math.max(cw/bgImage.width, ch/bgImage.height);
+        const w = bgImage.width * ratio, h = bgImage.height * ratio;
+        const sx = (cw - w)/2, sy = (ch - h)/2;
+        ctx.drawImage(bgImage, sx, sy, w, h);
+      }
+      ctx.restore();
+      // if there is existing history image, draw it (history holds drawing after background). If none, push current state.
+      if (history.length===0){ pushHistory(); }
+      // overlay items are DOM elements; they don't get drawn here until export
+    }
+
+    // Background upload
+    bgUpload.addEventListener('change', (ev)=>{
+      const f = ev.target.files[0]; if (!f) return;
+      const reader = new FileReader();
+      reader.onload = function(e){
+        const img = new Image(); img.onload = ()=>{ bgImage = img; redrawAll(); pushHistory(); };
+        img.src = e.target.result;
+      }; reader.readAsDataURL(f);
+    });
+    clearBg.addEventListener('click', ()=>{ bgImage=null; redrawAll(); pushHistory(); });
+
+    // Text & Stickers as DOM overlay elements (easier to move/edit)
+    function createTextElement(id, text, x, y){
+      const div = document.createElement('div');
+      div.className = 'overlay-object text-box';
+      div.style.left = x + 'px';
+      div.style.top = y + 'px';
+      div.style.pointerEvents = 'auto';
+      div.innerText = text;
+      div.contentEditable = true;
+      div.style.fontSize = '20px';
+      div.style.fontWeight = '600';
+      div.dataset.id = id;
+      makeDraggable(div);
+      return {id,type:'text',x,y,w:150,h:40,content:text,dom:div};
+    }
+
+    function createStickerElement(id, emoji, x=50,y=50){
+      const div = document.createElement('div');
+      div.className = 'overlay-object';
+      div.style.left = x + 'px';
+      div.style.top = y + 'px';
+      div.style.pointerEvents = 'auto';
+      div.innerHTML = `<div class="stick">${emoji}</div>`;
+      div.dataset.id = id;
+      makeDraggable(div);
+      return {id,type:'sticker',x,y,w:96,h:96,content:emoji,dom:div};
+    }
+
+    function makeDraggable(elem){
+      let isDown=false, startX=0, startY=0, origX=0, origY=0;
+      elem.addEventListener('pointerdown', (ev)=>{
+        if (modeEl.value === 'move' || modeEl.value === 'text'){
+          isDown=true; elem.setPointerCapture(ev.pointerId);
+          startX = ev.clientX; startY = ev.clientY;
+          origX = parseFloat(elem.style.left);
+          origY = parseFloat(elem.style.top);
+          selectObject(elem.dataset.id);
+        }
+      });
+      elem.addEventListener('pointermove', (ev)=>{
+        if (!isDown) return;
+        const dx = ev.clientX - startX; const dy = ev.clientY - startY;
+        elem.style.left = (origX + dx) + 'px'; elem.style.top = (origY + dy) + 'px';
+        // sync object position
+        const o = objects.find(o=>o.id===elem.dataset.id);
+        if (o){ o.x = parseFloat(elem.style.left); o.y = parseFloat(elem.style.top); }
+      });
+      ['pointerup','pointercancel','pointerleave'].forEach(evName=>{
+        elem.addEventListener(evName, (ev)=>{ if (isDown){ isDown=false; try{ elem.releasePointerCapture(ev.pointerId);}catch(e){} } });
+      });
+      // click to select
+      elem.addEventListener('click', (e)=>{ e.stopPropagation(); selectObject(elem.dataset.id); });
+    }
+
+    // Add preset stickers
+    addSmiley.addEventListener('click', ()=>{
+      const id = 'obj_'+Date.now(); const st = createStickerElement(id,'<span style="font-size:56px">🙂</span>',60,60); objects.push(st); overlay.appendChild(st.dom); selectObject(id);
+    });
+    addStar.addEventListener('click', ()=>{ const id='obj_'+Date.now(); const st=createStickerElement(id,'<span style="font-size:56px">⭐</span>',120,120); objects.push(st); overlay.appendChild(st.dom); selectObject(id); });
+    addBook.addEventListener('click', ()=>{ const id='obj_'+Date.now(); const st=createStickerElement(id,'<span style="font-size:48px">📚</span>',180,180); objects.push(st); overlay.appendChild(st.dom); selectObject(id); });
+
+    // Add text button
+    addTextBtn.addEventListener('click', ()=>{
+      const txt = textInput.value.trim(); if (!txt) return;
+      const id = 'obj_'+Date.now(); const el = createTextElement(id, txt, 80, 80);
+      objects.push(el); overlay.appendChild(el.dom); selectObject(id);
+    });
+
+    // selection
+    function selectObject(id){
+      selectedId = id;
+      // highlight DOM
+      overlay.querySelectorAll('.overlay-object').forEach(d=>d.classList.remove('selected'));
+      const obj = objects.find(o=>o.id===id);
+      if (obj){ obj.dom.classList.add('selected'); selectedInfo.innerText = obj.type + ' • ' + id; } else { selectedInfo.innerText='none'; }
+    }
+    // click outside to deselect
+    document.getElementById('canvasWrap').addEventListener('pointerdown',(e)=>{ if (e.target.id==='designerCanvas'){ overlay.querySelectorAll('.overlay-object').forEach(d=>d.classList.remove('selected')); selectedId=null; selectedInfo.innerText='none'; } });
+
+    // layer controls
+    bringForward.addEventListener('click', ()=>{
+      if (!selectedId) return;
+      const idx = objects.findIndex(o=>o.id===selectedId); if (idx<0 || idx===objects.length-1) return;
+      const [item] = objects.splice(idx,1); objects.splice(idx+1,0,item);
+      // reappend in that order
+      overlay.innerHTML=''; objects.forEach(o=>overlay.appendChild(o.dom));
+    });
+    sendBack.addEventListener('click', ()=>{
+      if (!selectedId) return;
+      const idx = objects.findIndex(o=>o.id===selectedId); if (idx<=0) return;
+      const [item] = objects.splice(idx,1); objects.splice(idx-1,0,item);
+      overlay.innerHTML=''; objects.forEach(o=>overlay.appendChild(o.dom));
+    });
+
+    // Undo
+    undoBtn.addEventListener('click', ()=>{ undo(); });
+    clearBtn.addEventListener('click', ()=>{ if (confirm('Clear all drawings (strokes only)?')){ ctx.clearRect(0,0,canvas.width,canvas.height); pushHistory(); } });
+
+    // Export: draw current canvas, bg, and overlay objects onto an offscreen canvas and open in new window
+    exportBtn.addEventListener('click', ()=>{ const data = exportToPNG(); window.open(data); });
+    downloadBtn.addEventListener('click', ()=>{ const data = exportToPNG(); const a = document.createElement('a'); a.href=data; a.download='studybuds_design.png'; a.click(); });
+
+    function exportToPNG(){
+      const cw = canvas.width/devicePixelRatio, ch = canvas.height/devicePixelRatio;
+      const out = document.createElement('canvas'); out.width = cw; out.height = ch; const outCtx = out.getContext('2d');
+      // draw background
+      if (bgImage){ const ratio = Math.max(cw/bgImage.width, ch/bgImage.height); const w=bgImage.width*ratio, h=bgImage.height*ratio; const sx=(cw-w)/2, sy=(ch-h)/2; outCtx.drawImage(bgImage,sx,sy,w,h); }
+      // draw current canvas drawing layer (history top)
+      // we can use current visible canvas as image
+      outCtx.drawImage(canvas,0,0,cw,ch);
+      // draw overlay objects
+      objects.forEach(o=>{
+        if (o.type==='text'){
+          // style
+          const dom = o.dom; const style = window.getComputedStyle(dom);
+          const fontSize = parseFloat(style.fontSize)||20; outCtx.font = `${style.fontWeight || '600'} ${fontSize}px ${style.fontFamily || 'Inter, Arial'}`;
+          outCtx.fillStyle = style.color || '#0f172a';
+          const x = parseFloat(dom.style.left)||0; const y = parseFloat(dom.style.top)||0;
+          // simple text drawing (no wrapping)
+          outCtx.fillText(dom.innerText, x, y + fontSize);
+        } else if (o.type==='sticker'){
+          // use DOM innerHTML emoji as text
+          const dom = o.dom; const emoji = o.content;
+          const x = parseFloat(dom.style.left)||0; const y = parseFloat(dom.style.top)||0;
+          outCtx.font = '56px serif'; outCtx.fillText(stripTags(emoji), x, y + 56);
+        }
+      });
+      return out.toDataURL('image/png');
+    }
+    function stripTags(html){ const tmp = document.createElement('div'); tmp.innerHTML = html; return tmp.innerText; }
+
+    // initialize default history
+    pushHistory();
+
+    // small UI bindings
+    colorEl.addEventListener('change', ()=>{});
+    sizeEl.addEventListener('change', ()=>{});
+
+    // save current drawing to history every 2s while not drawing (autosave strokes)
+    setInterval(()=>{ if (!drawing) pushHistory(); }, 4000);
+
+    // nice: allow Delete key to remove selected object
+    window.addEventListener('keydown', (e)=>{
+      if (e.key === 'Delete' && selectedId){ const idx = objects.findIndex(o=>o.id===selectedId); if (idx>=0){ const removed = objects.splice(idx,1)[0]; removed.dom.remove(); selectedId=null; selectedInfo.innerText='none'; } }
+    });
+
+    // make initial example sticker
+    addSmiley.click();
+  </script>
+</body>
+</html>
