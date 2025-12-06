@@ -1,6 +1,6 @@
 {
   "name": "Study Buds",
-  "short_name": "StudyBuds",
+  "short_name": "Study Buds",
   "start_url": "/Study-Buds/",
   "scope": "/Study-Buds/",
   "display": "standalone",
